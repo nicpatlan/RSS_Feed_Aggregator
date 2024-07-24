@@ -20,3 +20,9 @@
 # Go workspace file
 go.work
 go.work.sum
+
+# ignoring executable
+out
+
+# ignoring environment files
+.env
