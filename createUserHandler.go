@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -30,7 +29,7 @@ func (apiConfig *apiConfig) createUserHandler(wr http.ResponseWriter, req *http.
 		UpdatedAt: time.Now().UTC(),
 		Name:      userReq.Name,
 	}
-	user, err := apiConfig.DB.CreateUser(context.TODO(), newUser)
+	user, err := apiConfig.DB.CreateUser(req.Context(), newUser)
 	if err != nil {
 		respondWithError(wr, http.StatusInternalServerError, err.Error())
 		return
