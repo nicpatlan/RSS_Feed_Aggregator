@@ -24,7 +24,7 @@ func (apiConfig *apiConfig) createFeedHandler(wr http.ResponseWriter, req *http.
 	}
 
 	// add feed to database
-	params := database.CreateFeedParams{
+	createParams := database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -32,10 +32,34 @@ func (apiConfig *apiConfig) createFeedHandler(wr http.ResponseWriter, req *http.
 		Url:       feedReq.URL,
 		UserID:    user.ID,
 	}
-	feed, err := apiConfig.DB.CreateFeed(req.Context(), params)
+	feed, err := apiConfig.DB.CreateFeed(req.Context(), createParams)
 	if err != nil {
 		respondWithError(wr, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respondWithJSON(wr, http.StatusCreated, convertDatabaseFeedToFeed(feed))
+
+	// set user to follow created feed automatically
+	followParams := database.FollowFeedParams{
+		ID:        uuid.New(),
+		FeedID:    feed.ID,
+		UserID:    user.ID,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+	usersFeed, err := apiConfig.DB.FollowFeed(req.Context(), followParams)
+	if err != nil {
+		respondWithError(wr, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// set up response object
+	type response struct {
+		Feed       Feed      `json:"feed"`
+		FeedFollow UsersFeed `json:"feed_follow"`
+	}
+	createResponse := response{
+		Feed:       convertDatabaseFeedToFeed(feed),
+		FeedFollow: convertDatabaseUsersFeedToUsersFeed(usersFeed),
+	}
+	respondWithJSON(wr, http.StatusCreated, createResponse)
 }
