@@ -53,6 +53,14 @@ func convertDatabaseFeedToFeed(feed database.Feed) Feed {
 	}
 }
 
+func convertDatabaseFeedsToArray(dbFeeds []database.Feed) []Feed {
+	feeds := make([]Feed, len(dbFeeds))
+	for idx, feed := range dbFeeds {
+		feeds[idx] = convertDatabaseFeedToFeed(feed)
+	}
+	return feeds
+}
+
 func convertDatabaseUsersFeedToUsersFeed(usersFeed database.UsersFeed) UsersFeed {
 	return UsersFeed{
 		ID:        usersFeed.ID,
@@ -61,4 +69,12 @@ func convertDatabaseUsersFeedToUsersFeed(usersFeed database.UsersFeed) UsersFeed
 		CreatedAt: usersFeed.CreatedAt,
 		UpdatedAt: usersFeed.UpdatedAt,
 	}
+}
+
+func convertDatabaseUsersFeedToArray(dbUsersFeeds []database.UsersFeed) []UsersFeed {
+	usersFeeds := make([]UsersFeed, len(dbUsersFeeds))
+	for idx, usersFeed := range dbUsersFeeds {
+		usersFeeds[idx] = convertDatabaseUsersFeedToUsersFeed(usersFeed)
+	}
+	return usersFeeds
 }

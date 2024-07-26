@@ -48,6 +48,7 @@ func main() {
 	const getFeedsPattern = "GET /v1/feeds"
 	const followFeedPattern = "POST /v1/feed_follows"
 	const unfollowFeedPattern = "DELETE /v1/feed_follows/{feedFollowID}"
+	const getUserFeedsPattern = "GET /v1/feed_follows"
 
 	// add handlers
 	serveMux.Handle(healthzPattern, healthHandler{})
@@ -58,6 +59,7 @@ func main() {
 	serveMux.HandleFunc(getFeedsPattern, apiConfig.getFeedsHandler)
 	serveMux.HandleFunc(followFeedPattern, apiConfig.authMiddlewareHandler(apiConfig.followFeedHandler))
 	serveMux.HandleFunc(unfollowFeedPattern, apiConfig.authMiddlewareHandler(apiConfig.unfollowFeedHandler))
+	serveMux.HandleFunc(getUserFeedsPattern, apiConfig.authMiddlewareHandler(apiConfig.getUserFeedsHandler))
 
 	// start server
 	fmt.Printf("Running server and listening on port: %s\n", port)

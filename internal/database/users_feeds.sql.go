@@ -47,6 +47,41 @@ func (q *Queries) FollowFeed(ctx context.Context, arg FollowFeedParams) (UsersFe
 	return i, err
 }
 
+const getUserFeeds = `-- name: GetUserFeeds :many
+SELECT id, feed_id, user_id, created_at, updated_at
+FROM users_feeds
+WHERE user_id = $1
+`
+
+func (q *Queries) GetUserFeeds(ctx context.Context, userID uuid.UUID) ([]UsersFeed, error) {
+	rows, err := q.db.QueryContext(ctx, getUserFeeds, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UsersFeed
+	for rows.Next() {
+		var i UsersFeed
+		if err := rows.Scan(
+			&i.ID,
+			&i.FeedID,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const unfollowFeed = `-- name: UnfollowFeed :exec
 DELETE FROM users_feeds
 WHERE id = $1
