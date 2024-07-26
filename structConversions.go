@@ -24,6 +24,14 @@ type Feed struct {
 	UserID    uuid.UUID `json:"user_id"`
 }
 
+type UsersFeed struct {
+	ID        uuid.UUID `json:"id"`
+	FeedID    uuid.UUID `json:"feed_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 func convertDatabaseUserToUser(user database.User) User {
 	return User{
 		ID:        user.ID,
@@ -42,5 +50,15 @@ func convertDatabaseFeedToFeed(feed database.Feed) Feed {
 		Name:      feed.Name,
 		Url:       feed.Url,
 		UserID:    feed.UserID,
+	}
+}
+
+func convertDatabaseUsersFeedToUsersFeed(usersFeed database.UsersFeed) UsersFeed {
+	return UsersFeed{
+		ID:        usersFeed.ID,
+		FeedID:    usersFeed.FeedID,
+		UserID:    usersFeed.UserID,
+		CreatedAt: usersFeed.CreatedAt,
+		UpdatedAt: usersFeed.UpdatedAt,
 	}
 }
