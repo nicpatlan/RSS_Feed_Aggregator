@@ -45,6 +45,7 @@ func main() {
 	const createUserPattern = "POST /v1/users"
 	const getUserApiPattern = "GET /v1/users"
 	const createFeedPattern = "POST /v1/feeds"
+	const getFeedsPattern = "GET /v1/feeds"
 
 	// add handlers
 	serveMux.Handle(healthzPattern, healthHandler{})
@@ -52,6 +53,7 @@ func main() {
 	serveMux.HandleFunc(createUserPattern, apiConfig.createUserHandler)
 	serveMux.HandleFunc(getUserApiPattern, apiConfig.authMiddlewareHandler(apiConfig.getUserWithApiHandler))
 	serveMux.HandleFunc(createFeedPattern, apiConfig.authMiddlewareHandler(apiConfig.createFeedHandler))
+	serveMux.HandleFunc(getFeedsPattern, apiConfig.getFeedsHandler)
 
 	// start server
 	fmt.Printf("Running server and listening on port: %s", port)
