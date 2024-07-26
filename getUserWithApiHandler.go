@@ -1,22 +1,22 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/nicpatlan/RSS_Feed_Aggregator/internal/database"
 )
 
-func (apiConfig *apiConfig) getUserWithApiHandler(wr http.ResponseWriter, req *http.Request) {
+func getRequestApiKey(req *http.Request) (string, error) {
 	authStr := req.Header.Get("Authorization")
 	_, apiKey, ok := strings.Cut(authStr, "ApiKey ")
 	if !ok {
-		respondWithError(wr, http.StatusBadRequest, "invalid header")
-		return
+		return "", errors.New("invalid header")
 	}
-	user, err := apiConfig.DB.GetUserByApiKey(req.Context(), apiKey)
-	if err != nil {
-		respondWithError(wr, http.StatusInternalServerError, err.Error())
-		return
-	}
-	userResponse := convertDatabaseUserToUser(user)
-	respondWithJSON(wr, http.StatusOK, userResponse)
+	return apiKey, nil
+}
+
+func (apiConfig *apiConfig) getUserWithApiHandler(wr http.ResponseWriter, req *http.Request, user database.User) {
+	respondWithJSON(wr, http.StatusOK, convertDatabaseUserToUser(user))
 }
