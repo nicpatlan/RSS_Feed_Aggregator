@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -31,6 +32,9 @@ func (apiConfig *apiConfig) createFeedHandler(wr http.ResponseWriter, req *http.
 		Name:      feedReq.Name,
 		Url:       feedReq.URL,
 		UserID:    user.ID,
+		LastFetchedAt: sql.NullTime{
+			Valid: false,
+		},
 	}
 	feed, err := apiConfig.DB.CreateFeed(req.Context(), createParams)
 	if err != nil {
