@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -60,6 +61,11 @@ func main() {
 	serveMux.HandleFunc(followFeedPattern, apiConfig.authMiddlewareHandler(apiConfig.followFeedHandler))
 	serveMux.HandleFunc(unfollowFeedPattern, apiConfig.authMiddlewareHandler(apiConfig.unfollowFeedHandler))
 	serveMux.HandleFunc(getUserFeedsPattern, apiConfig.authMiddlewareHandler(apiConfig.getUserFeedsHandler))
+
+	// start goroutine to fetch a batch of 2 feeds every 60 seconds
+	const batchSize = 2
+	const fetchInterval = time.Minute
+	go apiConfig.fetchFeedBatch(batchSize, fetchInterval)
 
 	// start server
 	fmt.Printf("Running server and listening on port: %s\n", port)
