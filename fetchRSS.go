@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/nicpatlan/RSS_Feed_Aggregator/internal/database"
 )
 
@@ -39,17 +40,6 @@ func fetchRSS(url string) (Channel, error) {
 		return Channel{}, err
 	}
 	return *channel, nil
-
-	/*
-		// TODO remove : testing responses pubDates
-		//layout := "Mon, 02 Jan 2006 15:04:05 Z0700" same as time.RFC1123Z
-		t, err := time.Parse(time.RFC1123Z, channel.Items[0].PubDate)
-		if err != nil {
-			log.Fatalf("time.Parse error: %s", err)
-		}
-		log.Printf("the item is %v", channel.Items[0])
-		log.Printf("the parsed time is: %s", t)
-	*/
 }
 
 func (apiConfig *apiConfig) getNextFeedsToFetch(n int32) ([]Feed, error) {
@@ -92,9 +82,11 @@ func (apiConfig *apiConfig) fetchFeedBatch(batchSize int32, fetchInterval time.D
 			go func(url string) {
 				// decrement goroutine wait group counter when done
 				defer waitGroup.Done()
+				// fetch posts from feed
+				log.Printf("Fetching posts from feed at %s...", url)
 				channel, err := fetchRSS(feed.Url)
 				if err != nil {
-					log.Printf("error fetching feed at url: %s\nerror: %s", feed.Url, err)
+					log.Printf("error fetching feed at url: %s\nerror: %s", url, err)
 					return
 				} else {
 					err = apiConfig.markFeedFetched(feed)
@@ -104,7 +96,38 @@ func (apiConfig *apiConfig) fetchFeedBatch(batchSize int32, fetchInterval time.D
 					}
 				}
 				for _, item := range channel.Items {
-					log.Printf("%s feed with title: %s", feed.Name, item.Title)
+					// check that item pubDate can be converted to time.Time
+					pubDate, err := time.Parse(time.RFC1123Z, item.PubDate)
+					if err != nil {
+						log.Printf("could not parse post pubDate: %s", item.PubDate)
+						pubDate = time.Now().UTC()
+					}
+
+					// only get posts since the last time posts were fetched from the feed
+					var lastFetchedAt time.Time
+					if feed.LastFetchedAt == nil {
+						aYear := 24 * 365 * time.Hour
+						lastFetchedAt = time.Now().Add(-1 * aYear).UTC()
+					} else {
+						lastFetchedAt = *feed.LastFetchedAt
+					}
+					if pubDate.After(lastFetchedAt) {
+						// create post parameters and insert to database
+						postParams := database.CreatePostParams{
+							ID:          uuid.New(),
+							CreatedAt:   time.Now().UTC(),
+							UpdatedAt:   time.Now().UTC(),
+							Title:       item.Title,
+							Url:         item.Link,
+							Description: item.Description,
+							PublishedAt: pubDate,
+							FeedID:      feed.ID,
+						}
+						_, err = apiConfig.DB.CreatePost(context.TODO(), postParams)
+						if err != nil {
+							log.Printf("error creating post from feed at %s: %s", feed.Url, err.Error())
+						}
+					}
 				}
 			}(feed.Url)
 		}

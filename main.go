@@ -50,6 +50,7 @@ func main() {
 	const followFeedPattern = "POST /v1/feed_follows"
 	const unfollowFeedPattern = "DELETE /v1/feed_follows/{feedFollowID}"
 	const getUserFeedsPattern = "GET /v1/feed_follows"
+	const getUserPostsPattern = "GET /v1/posts"
 
 	// add handlers
 	serveMux.Handle(healthzPattern, healthHandler{})
@@ -61,6 +62,7 @@ func main() {
 	serveMux.HandleFunc(followFeedPattern, apiConfig.authMiddlewareHandler(apiConfig.followFeedHandler))
 	serveMux.HandleFunc(unfollowFeedPattern, apiConfig.authMiddlewareHandler(apiConfig.unfollowFeedHandler))
 	serveMux.HandleFunc(getUserFeedsPattern, apiConfig.authMiddlewareHandler(apiConfig.getUserFeedsHandler))
+	serveMux.HandleFunc(getUserPostsPattern, apiConfig.authMiddlewareHandler(apiConfig.getPostsByUserHandler))
 
 	// start goroutine to fetch a batch of 2 feeds every 60 seconds
 	const batchSize = 2
