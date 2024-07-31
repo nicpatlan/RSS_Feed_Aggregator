@@ -65,7 +65,7 @@ func main() {
 	serveMux.HandleFunc(getUserPostsPattern, apiConfig.authMiddlewareHandler(apiConfig.getPostsByUserHandler))
 
 	// start goroutine to fetch a batch of 2 feeds every 60 seconds
-	const batchSize = 2
+	const batchSize = 10
 	const fetchInterval = time.Minute
 	go apiConfig.fetchFeedBatch(batchSize, fetchInterval)
 
